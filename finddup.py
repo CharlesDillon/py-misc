@@ -24,21 +24,23 @@ else:
 dups=[]         # list of duplicates
 cumulative=[]   # all the md5sums -- check dups first
 fileList={}     # all files with associated md5 {full path: sum}
-dupdir={}
+dupdir={}       # number of times a dup has been found in a dir -- off by 1
 
+dupSuffix= ".jpg", ".JPG"   # note, must be tuple
 for r,d,f in os.walk(dirRoot):
     for files in f:
-            lowerFiles=files.lower()
-            if lowerFiles.endswith(".jpg"):
+#            lowerFiles=files.lower() # endswith passed tuple 
+#           of files to check.  does this matter? cost of md5sum that high?
+            if files.endswith(dupSuffix):
                         fullname= os.path.join(r,files)
                         fileHash = hashlib.md5(open(fullname, 'r').read()).hexdigest()
-                        if fileHash in cumulative:
+                        # Check for dup
+                        if fileHash in cumulative:  
                             dups.append(fileHash)
-                            if dupdir.has_key(files):
-                                dupdir[files]+=1
+                            if dupdir.has_key(r):
+                                dupdir[r]+=1
                             else:
-                                dupdir[files]=1
-#                            print "dup"     # which clearly isnt true
+                                dupdir[r]=1
                         cumulative.append(fileHash)
                         fileList[fullname]=fileHash
 #                        print "r is %s  d is %s   f is %s" % (r,d,f)
@@ -53,6 +55,9 @@ for j in dups:
         if fileList[i] == j:
             print i
     print " "
+
+for k in dupdir:
+    print "%s has %s dups in or under it" % (k, dupdir[k])
 
 
     
